@@ -6,6 +6,8 @@ export default function GetStarted() {
   const { user, login, logout } = usePrivy();
   const username = user?.telegram?.username;
 
+  console.log('user', user);
+
   return (
     <div>
       {user && (
