@@ -37,7 +37,9 @@ bot.on('message:text', async (ctx) => {
       },
     };
 
-    await ctx.reply(JSON.stringify(response));
+    await ctx.api.sendMessage(chatId, response.text, {
+      reply_markup: response.reply_markup,
+    });
   } else {
     await ctx.reply('I do not understand you.');
   }
