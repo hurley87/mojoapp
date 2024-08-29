@@ -10,6 +10,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       appId={appId}
       config={{
         loginMethods: ['telegram', 'wallet'],
+        embeddedWallets: {
+          createOnLogin: 'users-without-wallets',
+        },
         appearance: {
           theme: 'dark',
         },
