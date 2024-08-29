@@ -18,19 +18,27 @@ bot.on('message:text', async (ctx) => {
 
   if (message.text === '/start') {
     const chatId = message.chat.id;
-    const webAppUrl = 'https://www.mojo.club';
+    const url = 'https://www.mojo.club';
 
     const response = {
       chat_id: chatId,
       text: 'Welcome! Click the button below to open the mini-app.',
       reply_markup: {
-        keyboard: [
+        // keyboard: [
+        //   [
+        //     {
+        //       text: 'Open Mini App',
+        //       web_app: {
+        //         url: webAppUrl,
+        //       },
+        //     },
+        //   ],
+        // ],
+        inline_keyboard: [
           [
             {
-              text: 'Open Mini App',
-              web_app: {
-                url: webAppUrl,
-              },
+              text: 'Mojo App',
+              web_app: { url },
             },
           ],
         ],
