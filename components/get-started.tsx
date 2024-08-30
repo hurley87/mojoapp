@@ -1,8 +1,8 @@
 'use client';
 
 import { usePrivy, useWallets } from '@privy-io/react-auth';
-import { createSmartAccountClient } from '@biconomy/account';
-import { createPublicClient, http } from 'viem';
+import { createSmartAccountClient, PaymasterMode } from '@biconomy/account';
+import { createPublicClient, encodeFunctionData, http } from 'viem';
 import { chain } from '@/constants/chain';
 import { createBundlerClient } from 'viem/account-abstraction';
 import Claim from '@/lib/abis/Claim.json';
@@ -25,28 +25,60 @@ export default function GetStarted() {
   const biconomyPaymasterApiKey = process.env.NEXT_PUBLIC_B_KEY as string;
 
   const claimUsername = async () => {
-    const provider = await embeddedWallet?.getEthersProvider();
-    const signer = provider?.getSigner();
+    try {
+      const provider = await embeddedWallet?.getEthersProvider();
+      const signer = provider?.getSigner();
 
-    if (!signer) {
-      console.error('Signer not available');
-      return;
+      if (!signer) {
+        throw new Error('Signer not available');
+      }
+
+      const smartAccount = await createSmartAccountClient({
+        signer: signer,
+        bundlerUrl,
+        biconomyPaymasterApiKey,
+      });
+
+      const bundlerClient = createBundlerClient({
+        account: address,
+        client: publicClient,
+        transport: http(bundlerUrl),
+      });
+
+      const data = encodeFunctionData({
+        abi: Claim.abi,
+        functionName: 'claimUsername',
+        args: [username],
+      });
+
+      const userOpResponse = await smartAccount.sendTransaction(
+        {
+          to: '0xe563Fa132d56Afa6eF2c9C4368CC4B6dc53920A4',
+          data,
+        },
+        {
+          paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+        }
+      );
+
+      const { transactionHash } = await userOpResponse.waitForTxHash();
+
+      const userOpReceipt = await userOpResponse.wait();
+
+      console.log('smartAccount', smartAccount);
+      console.log('bundlerClient', bundlerClient);
+      console.log('mintTxData', data);
+      console.log('userOpResponse', userOpResponse);
+      console.log('transactionHash', transactionHash);
+
+      if (userOpReceipt.success === 'true') {
+        console.log('UserOp receipt', userOpReceipt);
+        console.log('Transaction receipt', userOpReceipt.receipt);
+      }
+    } catch (error) {
+      console.error('Error claiming username:', error);
+      // Handle the error appropriately, e.g., show an error message to the user
     }
-
-    const smartAccount = await createSmartAccountClient({
-      signer: signer,
-      bundlerUrl,
-      biconomyPaymasterApiKey,
-    });
-
-    const bundlerClient = createBundlerClient({
-      account: address,
-      client: publicClient,
-      transport: http(bundlerUrl),
-    });
-
-    console.log('smartAccount', smartAccount);
-    console.log('bundlerClient', bundlerClient);
   };
 
   return (
