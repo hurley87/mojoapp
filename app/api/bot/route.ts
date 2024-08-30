@@ -14,6 +14,8 @@ const bot = new Bot(token);
 bot.on('message:text', async (ctx) => {
   const message = ctx.message;
 
+  console.log('Received message:', message);
+
   if (message.text === '/start') {
     const chat_id = message.chat.id;
     const url = 'https://www.mojo.club';

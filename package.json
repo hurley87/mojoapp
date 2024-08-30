@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@alchemy/aa-alchemy": "^3.19.0",
+    "@alchemy/aa-core": "^3.19.0",
     "@biconomy/account": "^4.6.1",
     "@biconomy/use-aa": "^1.1.1",
     "@privy-io/react-auth": "^1.81.2",
