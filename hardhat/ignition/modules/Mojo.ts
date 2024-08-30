@@ -1,9 +1,9 @@
-import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';
+// import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';
 
-const MOJOModule = buildModule('MOJOModule', (m) => {
-  const mojo = m.contract('MOJO');
+// const MOJOModule = buildModule('MOJOModule', (m) => {
+//   const mojo = m.contract('MOJO');
 
-  return { mojo };
-});
+//   return { mojo };
+// });
 
-export default MOJOModule;
+// export default MOJOModule;
