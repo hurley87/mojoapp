@@ -18,7 +18,8 @@ bot.on('message:text', async (ctx) => {
 
   if (message.text === '/start') {
     const chat_id = message.chat.id;
-    const url = 'https://www.mojo.club';
+    const username = message.chat.username;
+    const url = `https://www.mojo.club?username=${username}`;
 
     const response = {
       chat_id,

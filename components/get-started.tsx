@@ -1,11 +1,12 @@
 'use client';
 
-import { usePrivy } from '@privy-io/react-auth';
+import { useAccount, useConnect, useDisconnect } from 'wagmi';
 
-export default function GetStarted() {
-  const { user, login } = usePrivy();
-  const username = user?.telegram?.username;
-  const address = user?.wallet?.address as `0x${string}`;
+export default function GetStarted({ username }: { username: string }) {
+  console.log('username:', username);
+  const account = useAccount();
+  const { connectors, connect, status, error } = useConnect();
+  const { disconnect } = useDisconnect();
 
   const claimUsername = async () => {
     try {
@@ -16,24 +17,44 @@ export default function GetStarted() {
     }
   };
 
+  console.log('connectors:', connectors);
+
   return (
     <div>
-      {user && (
-        <div className="flex flex-col gap-3">
-          <div>{username}</div>
-          <div>{address}</div>
-          <div>
-            <button type="button" onClick={claimUsername}>
-              Claim Username
+      <div>
+        <h2>{username || ''}</h2>
+
+        <div>
+          status: {account.status}
+          <br />
+          addresses: {JSON.stringify(account.addresses)}
+          <br />
+          chainId: {account.chainId}
+        </div>
+
+        {account.status === 'connected' && (
+          <button type="button" onClick={() => disconnect()}>
+            Disconnect
+          </button>
+        )}
+      </div>
+
+      <div>
+        <h2>Connect</h2>
+        {connectors
+          .filter((connector) => connector?.type === 'coinbaseWallet')
+          .map((connector) => (
+            <button
+              key={connector.uid}
+              onClick={() => connect({ connector })}
+              type="button"
+            >
+              {connector.name}
             </button>
-          </div>
-        </div>
-      )}
-      {!user && (
-        <div className="flex flex-col gap-3">
-          <button onClick={login}>Login</button>
-        </div>
-      )}
+          ))}
+        <div>{status}</div>
+        <div>{error?.message}</div>
+      </div>
     </div>
   );
 }

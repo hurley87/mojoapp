@@ -1,26 +1,23 @@
 'use client';
 
-import { PrivyProvider } from '@privy-io/react-auth';
-import { chain } from '@/constants/chain';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { type ReactNode, useState } from 'react';
+import { type State, WagmiProvider } from 'wagmi';
 
-export default function Providers({ children }: { children: React.ReactNode }) {
-  const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID!;
+import { getConfig } from '../wagmi';
+
+export function Providers(props: {
+  children: ReactNode;
+  initialState?: State;
+}) {
+  const [config] = useState(() => getConfig());
+  const [queryClient] = useState(() => new QueryClient());
+
   return (
-    <PrivyProvider
-      appId={appId}
-      config={{
-        loginMethods: ['telegram'],
-        embeddedWallets: {
-          createOnLogin: 'users-without-wallets',
-          noPromptOnSignature: true,
-        },
-        appearance: {
-          theme: 'dark',
-        },
-        defaultChain: chain,
-      }}
-    >
-      {children}
-    </PrivyProvider>
+    <WagmiProvider config={config} initialState={props.initialState}>
+      <QueryClientProvider client={queryClient}>
+        {props.children}
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 }
