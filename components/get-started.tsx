@@ -1,86 +1,58 @@
 'use client';
 
-import { usePrivy, useWallets } from '@privy-io/react-auth';
-import { createSmartAccountClient, PaymasterMode } from '@biconomy/account';
-import { createPublicClient, encodeFunctionData, http } from 'viem';
-import { chain } from '@/constants/chain';
-import { createBundlerClient } from 'viem/account-abstraction';
+import { usePrivy } from '@privy-io/react-auth';
+import { encodeFunctionData } from 'viem';
 import Claim from '@/lib/abis/Claim.json';
+import {
+  useSendSponsoredTransaction,
+  useSmartAccount,
+  useUserOpWait,
+} from '@biconomy/use-aa';
 
 export default function GetStarted() {
   const { user, login } = usePrivy();
   const username = user?.telegram?.username;
   const address = user?.wallet?.address as `0x${string}`;
-  const { wallets } = useWallets();
-  const embeddedWallet = wallets.find(
-    (wallet) => wallet.walletClientType === 'privy'
-  );
-  const publicClient = createPublicClient({
-    chain,
-    transport: http('https://sepolia.base.org'),
-  });
-  console.log('chain', chain);
-  console.log('address', address);
-  const bundlerUrl = process.env.NEXT_PUBLIC_BUNDLER_URL as string;
-  const biconomyPaymasterApiKey = process.env.NEXT_PUBLIC_B_KEY as string;
+  const { smartAccountAddress } = useSmartAccount();
+  const {
+    mutate,
+    data: userOpResponse,
+    error,
+    isPending,
+  } = useSendSponsoredTransaction();
+
+  const {
+    isLoading: waitIsLoading,
+    isSuccess: waitIsSuccess,
+    error: waitError,
+    data: waitData,
+  } = useUserOpWait(userOpResponse);
 
   const claimUsername = async () => {
     try {
-      const provider = await embeddedWallet?.getEthersProvider();
-      const signer = provider?.getSigner();
-
-      if (!signer) {
-        throw new Error('Signer not available');
-      }
-
-      const smartAccount = await createSmartAccountClient({
-        signer: signer,
-        chainId: chain.id,
-        bundlerUrl,
-        biconomyPaymasterApiKey,
-      });
-
-      const bundlerClient = createBundlerClient({
-        account: address,
-        client: publicClient,
-        transport: http(bundlerUrl),
-      });
-
       const data = encodeFunctionData({
         abi: Claim.abi,
         functionName: 'claimUsername',
         args: [username],
       });
 
-      const userOpResponse = await smartAccount.sendTransaction(
-        {
+      console.log('mintTxData', data);
+
+      mutate({
+        transactions: {
           to: '0xe563Fa132d56Afa6eF2c9C4368CC4B6dc53920A4',
           data,
         },
-        {
-          paymasterServiceData: { mode: PaymasterMode.SPONSORED },
-        }
-      );
-
-      const { transactionHash } = await userOpResponse.waitForTxHash();
-
-      const userOpReceipt = await userOpResponse.wait();
-
-      console.log('smartAccount', smartAccount);
-      console.log('bundlerClient', bundlerClient);
-      console.log('mintTxData', data);
-      console.log('userOpResponse', userOpResponse);
-      console.log('transactionHash', transactionHash);
-
-      if (userOpReceipt.success === 'true') {
-        console.log('UserOp receipt', userOpReceipt);
-        console.log('Transaction receipt', userOpReceipt.receipt);
-      }
+      });
     } catch (error) {
       console.error('Error claiming username:', error);
       // Handle the error appropriately, e.g., show an error message to the user
     }
   };
+
+  console.log('waitData', waitData);
+  console.log('waitIsSuccess', waitIsSuccess);
+  console.log('smartAccountAddress', smartAccountAddress);
 
   return (
     <div>
@@ -88,7 +60,12 @@ export default function GetStarted() {
         <div className="flex flex-col gap-3">
           <div>{username}</div>
           <div>{address}</div>
-          <button onClick={claimUsername}>Claim Username</button>
+          <div>
+            <button type="button" onClick={claimUsername}>
+              {waitIsLoading || isPending ? 'Executing...' : 'Mint an NFT'}
+            </button>
+            {(error || waitError) ?? ''}
+          </div>
         </div>
       )}
       {!user && (
