@@ -19,7 +19,7 @@ export default function GetStarted() {
     chain,
     transport: http('https://sepolia.base.org'),
   });
-
+  console.log('chain', chain);
   console.log('address', address);
   const bundlerUrl = process.env.NEXT_PUBLIC_BUNDLER_URL as string;
   const biconomyPaymasterApiKey = process.env.NEXT_PUBLIC_B_KEY as string;
@@ -35,6 +35,7 @@ export default function GetStarted() {
 
       const smartAccount = await createSmartAccountClient({
         signer: signer,
+        chainId: chain.id,
         bundlerUrl,
         biconomyPaymasterApiKey,
       });
